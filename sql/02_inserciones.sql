@@ -82,7 +82,9 @@ INSERT INTO ESPECIALIDADES (ESP_NOMBRE) VALUES
 ('Clinico Funcional'),
 ('Clinico Nutricionista'),
 ('Dermatologo'),
-('Medico Oftalmologo');
+('Medico Oftalmologo')
+('Medico Deportologo')
+;
 
 -- CONSULTORIOS --
 INSERT INTO CONSULTORIOS(COD_ESPECIALIDAD) VALUES
