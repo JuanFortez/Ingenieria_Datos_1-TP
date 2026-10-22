@@ -2,18 +2,18 @@
 
 -- COBERTURAS --
 INSERT INTO COBERTURAS VALUES 
-('OSDE', '210', 20 ),
-('OSDE', '310', 30 ),
-('OSDE', '410', 40 ),
-('OSDE', '510', 50 ),
-('Galeno', '220', 22),
-('Galeno', '330', 33),
-('Galeno', '440', 44),
-('Swiss Medica','SMG20', 20 ),
-('Swiss Medica','SMG40', 40 ),
-('Swiss Medica','SMG60', 60 ),
-('Swiss Medica','BLACK', 120 ),
-('Particular','Particular', 55);
+('OSDE', '210', 20000 ),
+('OSDE', '310', 30000 ),
+('OSDE', '410', 40000 ),
+('OSDE', '510', 50000 ),
+('Galeno', '220', 22000),
+('Galeno', '330', 33000),
+('Galeno', '440', 44000),
+('Swiss Medical','SMG20', 20000 ),
+('Swiss Medical','SMG40', 40000 ),
+('Swiss Medical','SMG60', 60000 ),
+('Swiss Medical','BLACK', 120000 ),
+('Particular','Particular', 55000);
 
 -- PACIENTES --
 INSERT INTO PACIENTES (
@@ -285,7 +285,7 @@ INSERT INTO FACTURACIONES (FACT_ATENCION, FACT_MONTO_TOTAL, FACT_MEDIO_PAGO, FAC
 (2, 90, 'EFECTIVO', 'PENDIENTE');
 
 -- DETALLES_FACTURAS --
-INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_PRECIO_APLICADO, DF_MONTO_COBERTURA, DF_MONTO_PACIENTE) VALUES
-(1, 1, 80, 60, 20),
-(1, 2, 150, 110, 40),
-(2, 3, 90, 30, 60);
+INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_MONTO_TOTAL) VALUES
+(1, 1, 20000),
+(1, 2, 26000),
+(2, 3, 9000);
