@@ -1,7 +1,9 @@
 /* ====== INSERCIONES ====== */
+USE Sistema_de_Gestion_Salud_Clinica_Samuel;
+GO
 
 -- COBERTURAS --
-INSERT INTO COBERTURAS VALUES 
+INSERT INTO COBERTURAS (COB_NOMBRE, COB_PLAN, COB_PAGO_CONSULTA) VALUES 
 ('OSDE', '210', 20000 ),
 ('OSDE', '310', 30000 ),
 ('OSDE', '410', 40000 ),
@@ -82,7 +84,7 @@ INSERT INTO ESPECIALIDADES (ESP_NOMBRE) VALUES
 ('Clinico Funcional'),
 ('Clinico Nutricionista'),
 ('Dermatologo'),
-('Medico Oftalmologo')
+('Medico Oftalmologo'),
 ('Medico Deportologo')
 ;
 
@@ -156,7 +158,7 @@ INSERT INTO CONSULTORIOS(COD_ESPECIALIDAD) VALUES
     '11-0000-0004',
     'prueba.cormillot04@hotmail.com',
     4,
-    'M�dico argentino especializado en nutricion y tratamiento de la obesidad.'
+    'Médico argentino especializado en nutricion y tratamiento de la obesidad.'
 ),
 
 (
@@ -280,12 +282,15 @@ INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO, ESO_TUR
 (2, 4, 'PENDIENTE',  NULL, 6);
 
 -- FACTURACIONES --
+-- FACT_MONTO_TOTAL = suma de DF_PRECIO_APLICADO de sus detalles
 INSERT INTO FACTURACIONES (FACT_ATENCION, FACT_MONTO_TOTAL, FACT_MEDIO_PAGO, FACT_ESTADO_PAGO) VALUES
-(1, 230, 'CREDITO', 'APROBADO'),
-(2, 90, 'EFECTIVO', 'PENDIENTE');
+(1, 67000, 'CREDITO', 'APROBADO'),   -- 22000 + 45000
+(2, 18000, 'EFECTIVO', 'PENDIENTE');
 
 -- DETALLES_FACTURAS --
-INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_MONTO_TOTAL) VALUES
-(1, 1, 20000),
-(1, 2, 26000),
-(2, 3, 9000);
+-- DF_PRECIO_APLICADO = EST_PRECIO_BASE del estudio; cobertura + paciente = precio (CHK_DF_MONTOS)
+-- Porcentajes provisorios (Galeno 440: 70%, OSDE 510: 80%) hasta agregar el % de cobertura al modelo
+INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_PRECIO_APLICADO, DF_MONTO_COBERTURA, DF_MONTO_PACIENTE) VALUES
+(1, 1, 22000, 15400,  6600),   -- Electrocardiograma
+(1, 2, 45000, 31500, 13500),   -- Ecocardiograma
+(2, 3, 18000, 14400,  3600);   -- Campo visual
