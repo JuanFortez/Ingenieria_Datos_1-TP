@@ -1,8 +1,9 @@
 /* ====== TABLAS ====== */
 CREATE DATABASE Sistema_de_Gestion_Salud_Clinica_Samuel;
+GO
 
 USE Sistema_de_Gestion_Salud_Clinica_Samuel;
-go;
+GO
 
 -- COBERTURAS --
 CREATE TABLE COBERTURAS (
