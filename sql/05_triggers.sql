@@ -1,7 +1,5 @@
 /* ====== TRIGGERS ====== */
 
-/* ====== TRIGGERS ====== */
-
 CREATE TRIGGER TR_TURNOS_validar_doble_reserva
 ON TURNOS
 AFTER INSERT, UPDATE
