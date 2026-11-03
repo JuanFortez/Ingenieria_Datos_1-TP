@@ -1,19 +1,21 @@
 /* ====== INSERCIONES ====== */
+USE Sistema_de_Gestion_Salud_Clinica_Samuel;
+GO
 
 -- COBERTURAS --
-INSERT INTO COBERTURAS VALUES 
-('OSDE', '210', 20 ),
-('OSDE', '310', 30 ),
-('OSDE', '410', 40 ),
-('OSDE', '510', 50 ),
-('Galeno', '220', 22),
-('Galeno', '330', 33),
-('Galeno', '440', 44),
-('Swiss Medica','SMG20', 20 ),
-('Swiss Medica','SMG40', 40 ),
-('Swiss Medica','SMG60', 60 ),
-('Swiss Medica','BLACK', 120 ),
-('Particular','Particular', 55);
+INSERT INTO COBERTURAS (COB_NOMBRE, COB_PLAN, COB_PAGO_CONSULTA) VALUES 
+('OSDE', '210', 20000 ),
+('OSDE', '310', 30000 ),
+('OSDE', '410', 40000 ),
+('OSDE', '510', 50000 ),
+('Galeno', '220', 22000),
+('Galeno', '330', 33000),
+('Galeno', '440', 44000),
+('Swiss Medical','SMG20', 20000 ),
+('Swiss Medical','SMG40', 40000 ),
+('Swiss Medical','SMG60', 60000 ),
+('Swiss Medical','BLACK', 120000 ),
+('Particular','Particular', 55000);
 
 -- PACIENTES --
 INSERT INTO PACIENTES (
@@ -82,7 +84,7 @@ INSERT INTO ESPECIALIDADES (ESP_NOMBRE) VALUES
 ('Clinico Funcional'),
 ('Clinico Nutricionista'),
 ('Dermatologo'),
-('Medico Oftalmologo')
+('Medico Oftalmologo'),
 ('Medico Deportologo')
 ;
 
@@ -156,7 +158,7 @@ INSERT INTO CONSULTORIOS(COD_ESPECIALIDAD) VALUES
     '11-0000-0004',
     'prueba.cormillot04@hotmail.com',
     4,
-    'M�dico argentino especializado en nutricion y tratamiento de la obesidad.'
+    'Médico argentino especializado en nutricion y tratamiento de la obesidad.'
 ),
 
 (
@@ -280,12 +282,15 @@ INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO, ESO_TUR
 (2, 4, 'PENDIENTE',  NULL, 6);
 
 -- FACTURACIONES --
+-- FACT_MONTO_TOTAL = suma de DF_PRECIO_APLICADO de sus detalles
 INSERT INTO FACTURACIONES (FACT_ATENCION, FACT_MONTO_TOTAL, FACT_MEDIO_PAGO, FACT_ESTADO_PAGO) VALUES
-(1, 230, 'CREDITO', 'APROBADO'),
-(2, 90, 'EFECTIVO', 'PENDIENTE');
+(1, 67000, 'CREDITO', 'APROBADO'),   -- 22000 + 45000
+(2, 18000, 'EFECTIVO', 'PENDIENTE');
 
 -- DETALLES_FACTURAS --
+-- DF_PRECIO_APLICADO = EST_PRECIO_BASE del estudio; cobertura + paciente = precio (CHK_DF_MONTOS)
+-- Porcentajes provisorios (Galeno 440: 70%, OSDE 510: 80%) hasta agregar el % de cobertura al modelo
 INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_PRECIO_APLICADO, DF_MONTO_COBERTURA, DF_MONTO_PACIENTE) VALUES
-(1, 1, 80, 60, 20),
-(1, 2, 150, 110, 40),
-(2, 3, 90, 30, 60);
+(1, 1, 22000, 15400,  6600),   -- Electrocardiograma
+(1, 2, 45000, 31500, 13500),   -- Ecocardiograma
+(2, 3, 18000, 14400,  3600);   -- Campo visual
