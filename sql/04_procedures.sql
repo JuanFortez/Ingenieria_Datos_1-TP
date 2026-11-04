@@ -1,4 +1,6 @@
 /* ====== PROCEDURES ====== */
+
+-- Procedure para agregar PACIENTE
 CREATE PROCEDURE Proc_AgregarPaciente
     @cuit CHAR(11), 
     @nombre VARCHAR(25), 
@@ -14,7 +16,7 @@ AS
 END 
 GO
 
-
+-- Procedure para agregar PROFESIONAL
 CREATE PROCEDURE Proc_AgregarProfesional
     @cuit CHAR(11), 
     @nombre VARCHAR(25), 
@@ -31,7 +33,7 @@ AS
 END
 GO
 
-
+-- Procedure para buscar DNI Paciente
 CREATE PROCEDURE Proc_Buscar_DNI_Paciente
     @dni INT 
 AS 
@@ -42,6 +44,7 @@ BEGIN
 END
 GO
 
+-- Procedure para buscar DNI Profesional
 CREATE PROCEDURE Proc_Buscar_DNI_Profesional
     @dni INT 
 AS 
@@ -52,6 +55,7 @@ BEGIN
 END
 GO
 
+-- Procedure para buscar TURNOS por DNI
 CREATE PROCEDURE Proc_BuscarTurnosPorDNI
     @dni INT
 AS
