@@ -1,5 +1,6 @@
 /* ====== TRIGGERS ====== */
 
+-- Trigger para validar que el profesional no se le asigne doble turno en la misma fecha y hora
 CREATE TRIGGER TR_TURNOS_validar_doble_reserva
 ON TURNOS
 AFTER INSERT, UPDATE
@@ -32,6 +33,7 @@ BEGIN
 END;
 GO
 
+-- Trigger para modificar estado de turno
 CREATE TRIGGER TR_TURNOS_estado
 ON TURNOS
 AFTER UPDATE
@@ -69,6 +71,7 @@ BEGIN
 END;
 GO
 
+-- Trigger para asignar automáticamente departamento a un estudio solicitado
 CREATE TRIGGER TR_ESO_asignar_departamento
 ON ESTUDIOS_SOLICITADOS
 AFTER INSERT, UPDATE
@@ -85,8 +88,7 @@ BEGIN
         INNER JOIN TURNOS T ON T.TUR_CODIGO = AM.AM_TURNO
         INNER JOIN PROFESIONALES P ON P.PRO_CODIGO = T.TUR_PROFESIONAL
         INNER JOIN DEPARTAMENTOS D ON D.DEPTO_ESPECIALIDAD = P.PRO_ESPECIALIDAD
-        WHERE ES.ESO_DEPARTAMENTO IS NULL
-           OR ES.ESO_DEPARTAMENTO <> D.DEPTO_CODIGO;
+        WHERE ES.ESO_DEPARTAMENTO IS NULL OR ES.ESO_DEPARTAMENTO <> D.DEPTO_CODIGO;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
@@ -96,6 +98,7 @@ BEGIN
 END;
 GO
 
+-- Trigger para evitar que se borre un turno con atención médica ya registrada
 CREATE TRIGGER TR_TURNOS_no_borrar_con_atencion
 ON TURNOS
 AFTER DELETE
