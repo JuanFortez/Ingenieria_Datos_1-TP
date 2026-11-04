@@ -1,4 +1,6 @@
 /* ====== PROCEDURES ====== */
+USE Sistema_de_Gestion_Salud_Clinica_Samuel;
+GO
 
 -- Procedure para agregar PACIENTE
 CREATE PROCEDURE Proc_AgregarPaciente
@@ -11,6 +13,7 @@ CREATE PROCEDURE Proc_AgregarPaciente
     @mail VARCHAR(100),
     @cobertura INT
 AS 
+BEGIN
 	INSERT INTO PACIENTES( PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_FECHA_NACIMIENTO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, COD_COBERTURA)
 	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion , @telefono, @mail,@cobertura );
 END 
@@ -28,6 +31,7 @@ CREATE PROCEDURE Proc_AgregarProfesional
     @especialidad INT,
     @cobertura INT
 AS 
+BEGIN
 	INSERT INTO PROFESIONALES( PRO_CUIT, PRO_NOMBRE, PRO_APELLIDO, PRO_FECHA_NACIMIENTO, PRO_DIRECCION, PRO_TELEFONO, PRO_EMAIL, PRO_ESPECIALIDAD)
 	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion ,@telefono,@mail,@especialidad );
 END
@@ -67,3 +71,249 @@ BEGIN
     WHERE SUBSTRING(P.PAC_CUIT, 3, 8) = @dni;
 END 
 GO
+
+
+/* ==========================================================================
+   PROCEDURES CON TRANSACCIONES Y MANEJO DE ERRORES
+   Patron usado en todos:
+     - Las validaciones de negocio lanzan errores propios con THROW (codigos 50001+).
+     - Si el procedure modifica mas de una tabla, las operaciones van dentro de
+       BEGIN TRANSACTION ... COMMIT: o se hacen todas, o no se hace ninguna.
+     - Ante cualquier error, el bloque CATCH deshace la transaccion abierta
+       (ROLLBACK) y vuelve a lanzar el error original (THROW) para que lo vea
+       quien llamo al procedure.
+     - SET XACT_ABORT ON: si ocurre un error en tiempo de ejecucion, SQL Server
+       marca la transaccion para deshacerse completa (evita commits parciales).
+   ========================================================================== */
+
+-- Procedure para REGISTRAR UN TURNO
+-- Valida paciente, fecha y que el consultorio sea de la especialidad del profesional.
+-- La doble reserva del profesional la controla el trigger TR_TURNOS_validar_doble_reserva
+-- y la del consultorio la constraint UQ_TUR_CONSULTORIO_FECHA_HORA.
+-- Devuelve el codigo del turno creado en el parametro de salida @turno_creado.
+CREATE PROCEDURE Proc_RegistrarTurno
+    @paciente INT,
+    @profesional INT,          -- NULL si el turno es de tipo ESTUDIO
+    @consultorio INT,
+    @fecha DATE,
+    @hora TIME(0),
+    @tipo_turno VARCHAR(20),
+    @turno_creado INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM PACIENTES WHERE PAC_CODIGO = @paciente)
+            THROW 50001, 'El paciente no existe.', 1;
+
+        IF @fecha < CAST(GETDATE() AS DATE)
+            THROW 50002, 'No se puede registrar un turno en una fecha pasada.', 1;
+
+        IF @tipo_turno = 'CONSULTA'
+        BEGIN
+            IF @profesional IS NULL
+                THROW 50003, 'Un turno de CONSULTA requiere un profesional.', 1;
+
+            IF NOT EXISTS (
+                SELECT 1
+                FROM PROFESIONALES P
+                INNER JOIN CONSULTORIOS C ON C.COD_ESPECIALIDAD = P.PRO_ESPECIALIDAD
+                WHERE P.PRO_CODIGO = @profesional
+                  AND C.CONS_CODIGO = @consultorio
+            )
+                THROW 50004, 'El consultorio no corresponde a la especialidad del profesional.', 1;
+        END
+
+        INSERT INTO TURNOS (TUR_PACIENTE, TUR_PROFESIONAL, TUR_CONSULTORIO, TUR_FECHA, TUR_HORA, TUR_ESTADO, TUR_TIPO_TURNO)
+        VALUES (@paciente, @profesional, @consultorio, @fecha, @hora, 'PENDIENTE', @tipo_turno);
+
+        SET @turno_creado = SCOPE_IDENTITY();   -- ultimo IDENTITY generado en este procedure
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Procedure para REGISTRAR UNA ATENCION MEDICA
+-- En una sola transaccion: crea la atencion, carga los estudios solicitados y pasa
+-- el turno a FINALIZADO. Si algo falla, no queda nada a medias.
+-- @estudios: codigos de ESTUDIOS separados por coma, por ejemplo '1,2'. NULL si no se piden.
+CREATE PROCEDURE Proc_RegistrarAtencion
+    @turno INT,
+    @motivo VARCHAR(150),
+    @diagnostico VARCHAR(250),
+    @observaciones VARCHAR(250),
+    @estudios VARCHAR(200),
+    @atencion_creada INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM TURNOS WHERE TUR_CODIGO = @turno)
+            THROW 50011, 'El turno no existe.', 1;
+
+        IF NOT EXISTS (SELECT 1 FROM TURNOS WHERE TUR_CODIGO = @turno AND TUR_TIPO_TURNO = 'CONSULTA')
+            THROW 50012, 'Solo se registran atenciones en turnos de tipo CONSULTA.', 1;
+
+        IF EXISTS (SELECT 1 FROM ATENCIONES_MEDICAS WHERE AM_TURNO = @turno)
+            THROW 50013, 'El turno ya tiene una atencion registrada.', 1;
+
+        IF NOT EXISTS (SELECT 1 FROM TURNOS WHERE TUR_CODIGO = @turno AND TUR_ESTADO = 'CONFIRMADO')
+            THROW 50014, 'El turno debe estar CONFIRMADO para registrar la atencion.', 1;
+
+        SET @estudios = NULLIF(LTRIM(RTRIM(@estudios)), '');   -- '' se trata igual que NULL
+
+        -- STRING_SPLIT separa la lista '1,2' en filas (requiere SQL Server 2016 o superior)
+        IF EXISTS (
+            SELECT 1
+            FROM STRING_SPLIT(@estudios, ',') S
+            WHERE TRY_CAST(S.value AS INT) IS NULL
+               OR NOT EXISTS (SELECT 1 FROM ESTUDIOS E WHERE E.EST_CODIGO = TRY_CAST(S.value AS INT))
+        )
+            THROW 50015, 'La lista de estudios contiene un codigo inexistente.', 1;
+
+        BEGIN TRANSACTION;
+
+            INSERT INTO ATENCIONES_MEDICAS (AM_TURNO, AM_MOTIVO_CONSULTA, AM_DIAGNOSTICO, AM_OBSERVACIONES)
+            VALUES (@turno, @motivo, @diagnostico, @observaciones);
+
+            SET @atencion_creada = SCOPE_IDENTITY();
+
+            -- El departamento lo completa el trigger TR_ESO_asignar_departamento
+            INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO)
+            SELECT DISTINCT @atencion_creada, CAST(S.value AS INT), 'PENDIENTE'
+            FROM STRING_SPLIT(@estudios, ',') S;
+
+            UPDATE TURNOS
+            SET TUR_ESTADO = 'FINALIZADO'
+            WHERE TUR_CODIGO = @turno;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Procedure para FACTURAR UNA ATENCION
+-- En una sola transaccion: crea la factura, agrega un detalle por cada estudio
+-- REALIZADO que todavia no fue facturado (al precio base vigente) y calcula el total.
+CREATE PROCEDURE Proc_FacturarAtencion
+    @atencion INT,
+    @medio_pago VARCHAR(20),
+    @factura_creada INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM ATENCIONES_MEDICAS WHERE AM_CODIGO = @atencion)
+            THROW 50021, 'La atencion no existe.', 1;
+
+        IF EXISTS (SELECT 1 FROM FACTURACIONES WHERE FACT_ATENCION = @atencion)
+            THROW 50022, 'La atencion ya fue facturada.', 1;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM ESTUDIOS_SOLICITADOS ES
+            WHERE ES.ESO_ATENCION = @atencion
+              AND ES.ESO_ESTADO = 'REALIZADO'
+              AND NOT EXISTS (SELECT 1 FROM DETALLES_FACTURAS DF WHERE DF.DF_ESTUDIO_SOLICITADO = ES.ESO_CODIGO)
+        )
+            THROW 50023, 'La atencion no tiene estudios realizados pendientes de facturar.', 1;
+
+        BEGIN TRANSACTION;
+
+            -- El total arranca en 0 y se calcula despues de cargar los detalles
+            INSERT INTO FACTURACIONES (FACT_ATENCION, FACT_MONTO_TOTAL, FACT_MEDIO_PAGO)
+            VALUES (@atencion, 0, @medio_pago);
+
+            SET @factura_creada = SCOPE_IDENTITY();
+
+            INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_MONTO_TOTAL)
+            SELECT @factura_creada, ES.ESO_CODIGO, E.EST_PRECIO_BASE
+            FROM ESTUDIOS_SOLICITADOS ES
+            INNER JOIN ESTUDIOS E ON E.EST_CODIGO = ES.ESO_ESTUDIO
+            WHERE ES.ESO_ATENCION = @atencion
+              AND ES.ESO_ESTADO = 'REALIZADO'
+              AND NOT EXISTS (SELECT 1 FROM DETALLES_FACTURAS DF WHERE DF.DF_ESTUDIO_SOLICITADO = ES.ESO_CODIGO);
+
+            UPDATE FACTURACIONES
+            SET FACT_MONTO_TOTAL = (SELECT SUM(DF_MONTO_TOTAL) FROM DETALLES_FACTURAS WHERE DF_FACTURA = @factura_creada)
+            WHERE FACT_CODIGO = @factura_creada;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Procedure para CANCELAR UN TURNO
+-- En una sola transaccion: cancela el turno y, si era un turno de ESTUDIO, libera los
+-- estudios solicitados que estaban programados en el (vuelven a PENDIENTE sin turno).
+-- Las transiciones de estado permitidas las controla el trigger TR_TURNOS_estado.
+CREATE PROCEDURE Proc_CancelarTurno
+    @turno INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM TURNOS WHERE TUR_CODIGO = @turno)
+            THROW 50031, 'El turno no existe.', 1;
+
+        BEGIN TRANSACTION;
+
+            UPDATE TURNOS
+            SET TUR_ESTADO = 'CANCELADO'
+            WHERE TUR_CODIGO = @turno;
+
+            UPDATE ESTUDIOS_SOLICITADOS
+            SET ESO_ESTADO = 'PENDIENTE',
+                ESO_TURNO = NULL
+            WHERE ESO_TURNO = @turno
+              AND ESO_ESTADO = 'PROGRAMADO';
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+/* Ejemplos de uso:
+
+DECLARE @nuevo_turno INT;
+EXEC Proc_RegistrarTurno @paciente = 16, @profesional = 5, @consultorio = 9,
+     @fecha = '2026-12-01', @hora = '10:00', @tipo_turno = 'CONSULTA',
+     @turno_creado = @nuevo_turno OUTPUT;
+SELECT @nuevo_turno AS turno_creado;
+
+DECLARE @nueva_atencion INT;
+EXEC Proc_RegistrarAtencion @turno = 1, @motivo = 'Control', @diagnostico = 'Sin hallazgos',
+     @observaciones = NULL, @estudios = '1,3', @atencion_creada = @nueva_atencion OUTPUT;
+
+DECLARE @nueva_factura INT;
+EXEC Proc_FacturarAtencion @atencion = 13, @medio_pago = 'DEBITO', @factura_creada = @nueva_factura OUTPUT;
+
+EXEC Proc_CancelarTurno @turno = 3;
+*/

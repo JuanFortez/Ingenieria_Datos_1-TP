@@ -20,3 +20,18 @@ Este proyecto simula la gestión de una clínica privada y el control de la aten
 El sistema facilita la gestión de turnos mediante la asignación de fechas, horarios y profesionales específicos, evitando conflictos de doble asignación de consultorios y profesionales, y permitiendo registrar el estado de cada turno en cada etapa del proceso. Además, permite registrar las atenciones médicas realizadas, los estudios solicitados a los pacientes y el seguimiento del estado de los mismos, con cálculo automático de los montos a cargo de la cobertura y del paciente al momento de facturar, diferenciando entre obras sociales, prepagas y pacientes particulares.
 
 A través de esta herramienta, el personal administrativo y los profesionales podrán organizar y supervisar la atención de los pacientes de forma más eficiente, consultando el historial completo de cada paciente con sus datos personales, turnos, atenciones, estudios y pagos realizados. De esta manera, el sistema contribuye a mejorar la organización de la clínica, optimizar la utilización de los recursos disponibles y reducir errores asociados a la gestión manual.
+
+## Estructura y orden de ejecución
+
+Ejecutar los scripts en SQL Server (SSMS) en este orden:
+
+| Archivo | Contenido |
+|---|---|
+| `sql/01_tablas.sql` | Creación de la base y de las tablas con sus restricciones |
+| `sql/02_inserciones.sql` | Datos de prueba (agosto a noviembre 2026) |
+| `sql/03_views.sql` | Vistas |
+| `sql/04_procedures.sql` | Procedimientos almacenados (altas, búsquedas y operaciones con transacciones) |
+| `sql/05_triggers.sql` | Triggers |
+| `sql/06_cursors.sql` | Procedimientos con cursores |
+| `sql/07_functions.sql` | Funciones escalares y de tabla |
+| `sql/08_consultas.sql` | Consultas: JOINs, GROUP BY/HAVING, subconsultas y operadores de conjuntos |

@@ -1,4 +1,6 @@
 /* ====== TRIGGERS ====== */
+USE Sistema_de_Gestion_Salud_Clinica_Samuel;
+GO
 
 -- Trigger para validar que el profesional no se le asigne doble turno en la misma fecha y hora
 CREATE TRIGGER TR_TURNOS_validar_doble_reserva
