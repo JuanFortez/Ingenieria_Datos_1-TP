@@ -293,3 +293,109 @@ INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_MONTO_TOTAL
 (1, 1, 22000),   -- Electrocardiograma
 (1, 2, 45000),   -- Ecocardiograma
 (2, 3, 18000);   -- Campo visual
+
+
+/* ==========================================================================
+   DATOS ADICIONALES PARA PRUEBAS
+   Amplian el set original (agosto a noviembre 2026) para que las consultas,
+   vistas, funciones y cursores devuelvan resultados representativos.
+   Los IDs comentados son los que asigna IDENTITY sobre una base recien creada.
+   ========================================================================== */
+
+-- PACIENTES (13 a 16) con CUIT de formato real: 2 digitos + DNI (8) + verificador --
+INSERT INTO PACIENTES (PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_FECHA_NACIMIENTO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, COD_COBERTURA, PAC_OBSERVACION) VALUES
+('27384561237', 'Barbara', 'Liskov',   '1939-11-07', 'Direccion ficticia 13', '1100000013', 'barbara@example.com', 1, 'DNI 38456123'),   -- 13
+('20401239876', 'Edsger',  'Dijkstra', '1930-05-11', 'Direccion ficticia 14', '1100000014', 'edsger@example.com',  6, 'DNI 40123987'),   -- 14
+('20295847612', 'Edgar',   'Codd',     '1923-08-19', 'Direccion ficticia 15', '1100000015', 'edgar@example.com',   9, 'DNI 29584761'),   -- 15
+('27312456785', 'Frances', 'Allen',    '1932-08-04', 'Direccion ficticia 16', '1100000016', 'frances@example.com', 2, 'Paciente nuevo, todavia sin turnos');   -- 16
+
+-- TURNOS (5 a 34) --
+-- Consultorios por especialidad: 1-2 Cardiologia, 3-4 Cirugia Plastica, 5-6 Clinica Funcional,
+-- 7-8 Nutricion, 9 Dermatologia, 10 Oftalmologia.
+INSERT INTO TURNOS (TUR_PACIENTE, TUR_PROFESIONAL, TUR_CONSULTORIO, TUR_FECHA, TUR_HORA, TUR_ESTADO, TUR_TIPO_TURNO) VALUES
+(5,  5,    9,  '2026-08-04', '10:00', 'FINALIZADO', 'CONSULTA'),   -- 5
+(3,  1,    1,  '2026-08-05', '09:00', 'FINALIZADO', 'CONSULTA'),   -- 6
+(5,  NULL, 9,  '2026-08-11', '10:00', 'FINALIZADO', 'ESTUDIO'),    -- 7
+(3,  NULL, 2,  '2026-08-12', '09:00', 'FINALIZADO', 'ESTUDIO'),    -- 8
+(3,  NULL, 2,  '2026-08-12', '09:30', 'FINALIZADO', 'ESTUDIO'),    -- 9
+(7,  4,    7,  '2026-08-18', '16:00', 'FINALIZADO', 'CONSULTA'),   -- 10
+(7,  NULL, 8,  '2026-08-25', '16:00', 'FINALIZADO', 'ESTUDIO'),    -- 11
+(6,  8,    10, '2026-08-26', '12:00', 'CANCELADO',  'CONSULTA'),   -- 12
+(8,  3,    3,  '2026-09-02', '14:00', 'FINALIZADO', 'CONSULTA'),   -- 13
+(8,  NULL, 4,  '2026-09-09', '14:00', 'FINALIZADO', 'ESTUDIO'),    -- 14
+(8,  NULL, 4,  '2026-09-09', '14:30', 'FINALIZADO', 'ESTUDIO'),    -- 15
+(9,  6,    9,  '2026-09-10', '15:00', 'FINALIZADO', 'CONSULTA'),   -- 16
+(9,  NULL, 9,  '2026-09-17', '15:00', 'FINALIZADO', 'ESTUDIO'),    -- 17
+(11, 1,    1,  '2026-09-15', '09:30', 'AUSENTE',    'CONSULTA'),   -- 18
+(12, 9,    10, '2026-09-22', '11:00', 'FINALIZADO', 'CONSULTA'),   -- 19
+(12, NULL, 10, '2026-09-29', '11:00', 'FINALIZADO', 'ESTUDIO'),    -- 20
+(10, 2,    2,  '2026-09-23', '10:00', 'FINALIZADO', 'CONSULTA'),   -- 21
+(10, NULL, 2,  '2026-09-30', '10:00', 'FINALIZADO', 'ESTUDIO'),    -- 22
+(1,  7,    10, '2026-10-06', '15:00', 'FINALIZADO', 'CONSULTA'),   -- 23
+(13, 4,    7,  '2026-10-07', '16:00', 'FINALIZADO', 'CONSULTA'),   -- 24
+(14, 5,    9,  '2026-10-13', '11:00', 'FINALIZADO', 'CONSULTA'),   -- 25
+(14, NULL, 9,  '2026-10-20', '11:00', 'FINALIZADO', 'ESTUDIO'),    -- 26
+(6,  1,    1,  '2026-10-14', '09:00', 'FINALIZADO', 'CONSULTA'),   -- 27
+(6,  NULL, 1,  '2026-10-21', '08:00', 'FINALIZADO', 'ESTUDIO'),    -- 28
+(9,  2,    2,  '2026-10-28', '10:00', 'AUSENTE',    'CONSULTA'),   -- 29
+(2,  2,    2,  '2026-11-09', '10:00', 'CONFIRMADO', 'CONSULTA'),   -- 30
+(13, 4,    7,  '2026-11-10', '16:00', 'PENDIENTE',  'CONSULTA'),   -- 31
+(15, 7,    10, '2026-11-11', '15:00', 'PENDIENTE',  'CONSULTA'),   -- 32
+(3,  1,    1,  '2026-11-12', '09:00', 'CONFIRMADO', 'CONSULTA'),   -- 33
+(11, 6,    9,  '2026-11-13', '15:00', 'PENDIENTE',  'CONSULTA');   -- 34
+
+-- ATENCIONES_MEDICAS (3 a 13) --
+INSERT INTO ATENCIONES_MEDICAS (AM_TURNO, AM_MOTIVO_CONSULTA, AM_DIAGNOSTICO, AM_OBSERVACIONES) VALUES
+(5,  'Lunar con cambios de color',  'Nevo atipico',                       'Se indica dermatoscopia'),          -- 3
+(6,  'Dolor de pecho al esfuerzo',  'Angina estable a confirmar',         'Se solicitan ECG y ergometria'),    -- 4
+(10, 'Descenso de peso',            'Sobrepeso grado I',                  'Plan alimentario personalizado'),   -- 5
+(13, 'Consulta por rinoplastia',    'Desviacion de tabique',              'Paciente particular'),              -- 6
+(16, 'Manchas blancas en la piel',  'Vitiligo',                           NULL),                               -- 7
+(19, 'Vision borrosa de cerca',     'Cataratas incipientes',              NULL),                               -- 8
+(21, 'Control post tratamiento',    'Taquicardia controlada',             NULL),                               -- 9
+(23, 'Ojo seco',                    'Sindrome de ojo seco',               'Sin estudios'),                     -- 10
+(24, 'Control nutricional',         'Habitos alimentarios saludables',    NULL),                               -- 11
+(25, 'Lesion en la espalda',        'Lesion sospechosa',                  'Se indica biopsia'),                -- 12
+(27, 'Control de rutina',           'Colesterol elevado a confirmar',     'Se solicita analisis de sangre');   -- 13
+
+-- ESTUDIOS_SOLICITADOS (4 a 16) --
+-- ESO_DEPARTAMENTO: departamento de la especialidad del profesional que solicito el estudio.
+INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO, ESO_TURNO, ESO_DEPARTAMENTO) VALUES
+(3,  14, 'REALIZADO', 7,    5),   -- 4: Dermatoscopia
+(4,  1,  'REALIZADO', 8,    1),   -- 5: Electrocardiograma
+(4,  9,  'REALIZADO', 9,    1),   -- 6: Ergometria
+(5,  13, 'REALIZADO', 11,   4),   -- 7: Bioimpedancia
+(6,  16, 'REALIZADO', 14,   2),   -- 8: Fotografia clinica
+(6,  17, 'REALIZADO', 15,   2),   -- 9: Marcacion quirurgica
+(7,  15, 'REALIZADO', 17,   5),   -- 10: Luz de Wood
+(8,  8,  'REALIZADO', 20,   6),   -- 11: Fondo de ojo
+(8,  7,  'CANCELADO', NULL, 6),   -- 12: Tonometria (cancelado, no se factura)
+(9,  2,  'REALIZADO', 22,   1),   -- 13: Ecocardiograma
+(11, 12, 'PENDIENTE', NULL, 4),   -- 14: Antropometria
+(12, 5,  'REALIZADO', 26,   5),   -- 15: Biopsia cutanea
+(13, 3,  'REALIZADO', 28,   1);   -- 16: Analisis de sangre (realizado y todavia sin facturar)
+
+-- FACTURACIONES (3 a 10) --
+-- Las atenciones 10, 11 y 13 quedan sin facturar a proposito (para probar procedures y cursores).
+INSERT INTO FACTURACIONES (FACT_ATENCION, FACT_FECHA, FACT_HORA, FACT_MONTO_TOTAL, FACT_MEDIO_PAGO, FACT_ESTADO_PAGO) VALUES
+(3,  '2026-08-11', '10:30', 30000, 'DEBITO',        'APROBADO'),    -- 3
+(4,  '2026-08-12', '10:00', 70000, 'CREDITO',       'APROBADO'),    -- 4: 22000 + 48000
+(5,  '2026-08-25', '16:30', 25000, 'EFECTIVO',      'APROBADO'),    -- 5
+(6,  '2026-09-09', '15:00', 32000, 'TRANSFERENCIA', 'APROBADO'),    -- 6: 12000 + 20000
+(7,  '2026-09-17', '15:30', 16000, 'CREDITO',       'RECHAZADO'),   -- 7
+(8,  '2026-09-29', '11:30', 25000, 'DEBITO',        'APROBADO'),    -- 8
+(9,  '2026-09-30', '10:30', 45000, 'EFECTIVO',      'APROBADO'),    -- 9
+(12, '2026-10-20', '11:30', 55000, 'TRANSFERENCIA', 'PENDIENTE');   -- 10
+
+-- DETALLES_FACTURAS (4 a 13) --
+INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_MONTO_TOTAL) VALUES
+(3,  4,  30000),   -- Dermatoscopia
+(4,  5,  22000),   -- Electrocardiograma
+(4,  6,  48000),   -- Ergometria
+(5,  7,  25000),   -- Bioimpedancia
+(6,  8,  12000),   -- Fotografia clinica
+(6,  9,  20000),   -- Marcacion quirurgica
+(7,  10, 16000),   -- Luz de Wood
+(8,  11, 25000),   -- Fondo de ojo
+(9,  13, 45000),   -- Ecocardiograma
+(10, 15, 55000);   -- Biopsia cutanea
