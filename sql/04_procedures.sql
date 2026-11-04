@@ -1,4 +1,6 @@
 /* ====== PROCEDURES ====== */
+USE Sistema_de_Gestion_Salud_Clinica_Samuel;
+GO
 
 -- Procedure para agregar PACIENTE
 CREATE PROCEDURE Proc_AgregarPaciente
@@ -11,6 +13,7 @@ CREATE PROCEDURE Proc_AgregarPaciente
     @mail VARCHAR(100),
     @cobertura INT
 AS 
+BEGIN
 	INSERT INTO PACIENTES( PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_FECHA_NACIMIENTO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, COD_COBERTURA)
 	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion , @telefono, @mail,@cobertura );
 END 
@@ -28,6 +31,7 @@ CREATE PROCEDURE Proc_AgregarProfesional
     @especialidad INT,
     @cobertura INT
 AS 
+BEGIN
 	INSERT INTO PROFESIONALES( PRO_CUIT, PRO_NOMBRE, PRO_APELLIDO, PRO_FECHA_NACIMIENTO, PRO_DIRECCION, PRO_TELEFONO, PRO_EMAIL, PRO_ESPECIALIDAD)
 	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion ,@telefono,@mail,@especialidad );
 END
