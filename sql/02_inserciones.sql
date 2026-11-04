@@ -294,14 +294,6 @@ INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_MONTO_TOTAL
 (1, 2, 45000),   -- Ecocardiograma
 (2, 3, 18000);   -- Campo visual
 
-
-/* ==========================================================================
-   DATOS ADICIONALES PARA PRUEBAS
-   Amplian el set original (agosto a noviembre 2026) para que las consultas,
-   vistas, funciones y cursores devuelvan resultados representativos.
-   Los IDs comentados son los que asigna IDENTITY sobre una base recien creada.
-   ========================================================================== */
-
 -- PACIENTES (13 a 16) con CUIT de formato real: 2 digitos + DNI (8) + verificador --
 INSERT INTO PACIENTES (PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_FECHA_NACIMIENTO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, COD_COBERTURA, PAC_OBSERVACION) VALUES
 ('27384561237', 'Barbara', 'Liskov',   '1939-11-07', 'Direccion ficticia 13', '1100000013', 'barbara@example.com', 1, 'DNI 38456123'),   -- 13
