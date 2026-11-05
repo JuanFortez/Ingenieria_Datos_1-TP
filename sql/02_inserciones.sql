@@ -276,10 +276,10 @@ INSERT INTO ATENCIONES_MEDICAS (AM_TURNO, AM_MOTIVO_CONSULTA, AM_DIAGNOSTICO, AM
 (4, 'Control de vision', 'Miopia leve', 'Se solicita campo visual');
 
 -- ESTUDIOS_SOLICITADOS -- 
-INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO, ESO_TURNO, ESO_DEPARTAMENTO) VALUES
-(1, 1, 'PROGRAMADO', 3,    1),
-(1, 2, 'PENDIENTE',  NULL, 1),
-(2, 4, 'PENDIENTE',  NULL, 6);
+INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO, ESO_TURNO) VALUES
+(1, 1, 'PROGRAMADO', 3),
+(1, 2, 'PENDIENTE',  NULL),
+(2, 4, 'PENDIENTE',  NULL);
 
 -- FACTURACIONES --
 -- FACT_MONTO_TOTAL = suma de DF_MONTO_TOTAL de sus detalles
@@ -351,21 +351,20 @@ INSERT INTO ATENCIONES_MEDICAS (AM_TURNO, AM_MOTIVO_CONSULTA, AM_DIAGNOSTICO, AM
 (27, 'Control de rutina',           'Colesterol elevado a confirmar',     'Se solicita analisis de sangre');   -- 13
 
 -- ESTUDIOS_SOLICITADOS (4 a 16) --
--- ESO_DEPARTAMENTO: departamento de la especialidad del profesional que solicito el estudio.
-INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO, ESO_TURNO, ESO_DEPARTAMENTO) VALUES
-(3,  14, 'REALIZADO', 7,    5),   -- 4: Dermatoscopia
-(4,  1,  'REALIZADO', 8,    1),   -- 5: Electrocardiograma
-(4,  9,  'REALIZADO', 9,    1),   -- 6: Ergometria
-(5,  13, 'REALIZADO', 11,   4),   -- 7: Bioimpedancia
-(6,  16, 'REALIZADO', 14,   2),   -- 8: Fotografia clinica
-(6,  17, 'REALIZADO', 15,   2),   -- 9: Marcacion quirurgica
-(7,  15, 'REALIZADO', 17,   5),   -- 10: Luz de Wood
-(8,  8,  'REALIZADO', 20,   6),   -- 11: Fondo de ojo
-(8,  7,  'CANCELADO', NULL, 6),   -- 12: Tonometria (cancelado, no se factura)
-(9,  2,  'REALIZADO', 22,   1),   -- 13: Ecocardiograma
-(11, 12, 'PENDIENTE', NULL, 4),   -- 14: Antropometria
-(12, 5,  'REALIZADO', 26,   5),   -- 15: Biopsia cutanea
-(13, 3,  'REALIZADO', 28,   1);   -- 16: Analisis de sangre (realizado y todavia sin facturar)
+INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO, ESO_TURNO) VALUES
+(3,  14, 'REALIZADO', 7),       -- 4: Dermatoscopia
+(4,  1,  'REALIZADO', 8),       -- 5: Electrocardiograma
+(4,  9,  'REALIZADO', 9),       -- 6: Ergometria
+(5,  13, 'REALIZADO', 11),      -- 7: Bioimpedancia
+(6,  16, 'REALIZADO', 14),      -- 8: Fotografia clinica
+(6,  17, 'REALIZADO', 15),      -- 9: Marcacion quirurgica
+(7,  15, 'REALIZADO', 17),      -- 10: Luz de Wood
+(8,  8,  'REALIZADO', 20),      -- 11: Fondo de ojo
+(8,  7,  'CANCELADO', NULL),    -- 12: Tonometria (cancelado, no se factura)
+(9,  2,  'REALIZADO', 22),      -- 13: Ecocardiograma
+(11, 12, 'PENDIENTE', NULL),    -- 14: Antropometria
+(12, 5,  'REALIZADO', 26),      -- 15: Biopsia cutanea
+(13, 3,  'REALIZADO', 28);      -- 16: Analisis de sangre (realizado y todavia sin facturar)
 
 -- FACTURACIONES (3 a 10) --
 -- Las atenciones 10, 11 y 13 quedan sin facturar a proposito (para probar procedures y cursores).

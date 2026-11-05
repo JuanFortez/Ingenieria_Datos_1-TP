@@ -186,7 +186,6 @@ BEGIN
 
             SET @atencion_creada = SCOPE_IDENTITY();
 
-            -- El departamento lo completa el trigger TR_ESO_asignar_departamento
             INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO)
             SELECT DISTINCT @atencion_creada, CAST(S.value AS INT), 'PENDIENTE'
             FROM STRING_SPLIT(@estudios, ',') S;
