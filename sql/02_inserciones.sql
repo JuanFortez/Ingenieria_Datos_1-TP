@@ -3,19 +3,26 @@ USE Sistema_de_Gestion_Salud_Clinica_Samuel;
 GO
 
 -- COBERTURAS --
-INSERT INTO COBERTURAS (COB_NOMBRE, COB_PLAN, COB_PAGO_CONSULTA) VALUES 
-('OSDE', '210', 20000 ),
-('OSDE', '310', 30000 ),
-('OSDE', '410', 40000 ),
-('OSDE', '510', 50000 ),
-('Galeno', '220', 22000),
-('Galeno', '330', 33000),
-('Galeno', '440', 44000),
-('Swiss Medical','SMG20', 20000 ),
-('Swiss Medical','SMG40', 40000 ),
-('Swiss Medical','SMG60', 60000 ),
-('Swiss Medical','BLACK', 120000 ),
-('PARTICULAR/OTROS','Particular', 55000);   -- nombre segun CHK_COB_NOMBRE
+INSERT INTO COBERTURAS (COB_NOMBRE) VALUES 
+('OSDE'),
+('Galeno'),
+('Swiss Medical'),
+('PARTICULAR/OTROS');   -- nombre segun CHK_COB_NOMBRE
+
+-- PLANES --
+INSERT INTO COBERTURAS (COB_NOMBRE) VALUES 
+(1, '210', 20000 ),
+(1, '310', 30000 ),
+(1, '410', 40000 ),
+(1, '510', 50000 ),
+(2, '220', 22000),
+(2, '330', 33000),
+(2, '440', 44000),
+(3,'SMG20', 20000 ),
+(3,'SMG40', 40000 ),
+(3,'SMG60', 60000 ),
+(3,'BLACK', 120000 ),
+(4,'Particular', 55000); 
 
 -- PACIENTES --
 INSERT INTO PACIENTES (
@@ -282,13 +289,19 @@ INSERT INTO ESTUDIOS_SOLICITADOS (ESO_ATENCION, ESO_ESTUDIO, ESO_ESTADO, ESO_TUR
 (2, 4, 'PENDIENTE',  NULL);
 
 -- FACTURACIONES --
--- FACT_MONTO_TOTAL = suma de DF_MONTO_TOTAL de sus detalles
+/*
+    FACT_MONTO_TOTAL es un snapshot historico del total al momento de facturar.
+    No se recalcula si luego cambia ESTUDIOS.EST_PRECIO_BASE.
+*/
 INSERT INTO FACTURACIONES (FACT_ATENCION, FACT_MONTO_TOTAL, FACT_MEDIO_PAGO, FACT_ESTADO_PAGO) VALUES
 (1, 67000, 'CREDITO', 'APROBADO'),   -- 22000 + 45000
 (2, 18000, 'EFECTIVO', 'PENDIENTE');
 
 -- DETALLES_FACTURAS --
--- DF_MONTO_TOTAL = EST_PRECIO_BASE del estudio facturado
+/*
+    DF_MONTO_TOTAL es un snapshot historico del precio cobrado al momento de facturar.
+    No se recalcula si luego cambia ESTUDIOS.EST_PRECIO_BASE.
+*/
 INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_MONTO_TOTAL) VALUES
 (1, 1, 22000),   -- Electrocardiograma
 (1, 2, 45000),   -- Ecocardiograma
