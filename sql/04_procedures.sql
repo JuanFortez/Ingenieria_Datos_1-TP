@@ -3,6 +3,7 @@ USE Sistema_de_Gestion_Salud_Clinica_Samuel;
 GO
 
 -- Procedure para agregar PACIENTE
+-- Valida que el CUIT no este repetido y que el plan exista.
 CREATE PROCEDURE Proc_AgregarPaciente
     @cuit CHAR(11), 
     @nombre VARCHAR(25), 
@@ -14,12 +15,33 @@ CREATE PROCEDURE Proc_AgregarPaciente
     @plan INT
 AS 
 BEGIN
-	INSERT INTO PACIENTES( PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_FECHA_NACIMIENTO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, COD_PLAN)
-	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion , @telefono, @mail, @plan );
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        IF EXISTS (SELECT * FROM PACIENTES WHERE PAC_CUIT = @cuit)
+            RAISERROR('Ya existe un paciente con ese CUIT.', 16, 1);
+
+        IF NOT EXISTS (SELECT * FROM PLANES WHERE PLAN_CODIGO = @plan)
+            RAISERROR('El plan indicado no existe.', 16, 1);
+
+        INSERT INTO PACIENTES(
+            PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_FECHA_NACIMIENTO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, COD_PLAN
+        )
+        VALUES(
+            @cuit, @nombre, @apellido, @fecha_nacimiento, @direccion, @telefono, @mail, @plan
+        );
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END 
 GO
 
 -- Procedure para agregar PROFESIONAL
+-- Valida que el CUIT no este repetido y que la especialidad exista.
 CREATE PROCEDURE Proc_AgregarProfesional
     @cuit CHAR(11), 
     @nombre VARCHAR(25), 
@@ -28,11 +50,31 @@ CREATE PROCEDURE Proc_AgregarProfesional
     @direccion VARCHAR(100),
     @telefono VARCHAR(20),
     @mail VARCHAR(100),
-    @especialidad INT,
+    @especialidad INT
 AS 
 BEGIN
-	INSERT INTO PROFESIONALES( PRO_CUIT, PRO_NOMBRE, PRO_APELLIDO, PRO_FECHA_NACIMIENTO, PRO_DIRECCION, PRO_TELEFONO, PRO_EMAIL, PRO_ESPECIALIDAD)
-	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion, @telefono, @mail, @especialidad );
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        IF EXISTS (SELECT * FROM PROFESIONALES WHERE PRO_CUIT = @cuit)
+            RAISERROR('Ya existe un profesional con ese CUIT.', 16, 1);
+
+        IF NOT EXISTS (SELECT * FROM ESPECIALIDADES WHERE ESP_CODIGO = @especialidad)
+            RAISERROR('La especialidad indicada no existe.', 16, 1);
+
+        INSERT INTO PROFESIONALES(
+            PRO_CUIT, PRO_NOMBRE, PRO_APELLIDO, PRO_FECHA_NACIMIENTO, PRO_DIRECCION, PRO_TELEFONO, PRO_EMAIL, PRO_ESPECIALIDAD
+        )
+        VALUES(
+            @cuit, @nombre, @apellido, @fecha_nacimiento, @direccion, @telefono, @mail, @especialidad
+        );
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END
 GO
 
@@ -71,25 +113,13 @@ BEGIN
 END 
 GO
 
-
-/* ==========================================================================
-   PROCEDURES CON TRANSACCIONES Y MANEJO DE ERRORES
-   Patron usado en todos:
-     - Las validaciones de negocio lanzan errores propios con THROW (codigos 50001+).
-     - Si el procedure modifica mas de una tabla, las operaciones van dentro de
-       BEGIN TRANSACTION ... COMMIT: o se hacen todas, o no se hace ninguna.
-     - Ante cualquier error, el bloque CATCH deshace la transaccion abierta
-       (ROLLBACK) y vuelve a lanzar el error original (THROW) para que lo vea
-       quien llamo al procedure.
-     - SET XACT_ABORT ON: si ocurre un error en tiempo de ejecucion, SQL Server
-       marca la transaccion para deshacerse completa (evita commits parciales).
-   ========================================================================== */
-
 -- Procedure para REGISTRAR UN TURNO
--- Valida paciente, fecha y que el consultorio sea de la especialidad del profesional.
--- La doble reserva del profesional la controla el trigger TR_TURNOS_validar_doble_reserva
--- y la del consultorio la constraint UQ_TUR_CONSULTORIO_FECHA_HORA.
--- Devuelve el codigo del turno creado en el parametro de salida @turno_creado.
+/*
+    Valida paciente, fecha y que el consultorio sea de la especialidad del profesional.
+    La doble reserva del profesional la controla el trigger TR_TURNOS_validar_doble_reserva
+    y la del consultorio la constraint UQ_TUR_CONSULTORIO_FECHA_HORA.
+    Devuelve el codigo del turno creado en el parametro de salida @turno_creado.
+*/
 CREATE PROCEDURE Proc_RegistrarTurno
     @paciente INT,
     @profesional INT,          -- NULL si el turno es de tipo ESTUDIO
@@ -139,9 +169,11 @@ END
 GO
 
 -- Procedure para REGISTRAR UNA ATENCION MEDICA
--- En una sola transaccion: crea la atencion, carga los estudios solicitados y pasa
--- el turno a FINALIZADO. Si algo falla, no queda nada a medias.
--- @estudios: codigos de ESTUDIOS separados por coma, por ejemplo '1,2'. NULL si no se piden.
+/*
+    En una sola transaccion: crea la atencion, carga los estudios solicitados y pasa
+    el turno a FINALIZADO. Si algo falla, no queda nada a medias.
+    @estudios: codigos de ESTUDIOS separados por coma, por ejemplo '1,2'. NULL si no se piden.
+*/
 CREATE PROCEDURE Proc_RegistrarAtencion
     @turno INT,
     @motivo VARCHAR(150),
@@ -204,9 +236,11 @@ END
 GO
 
 -- Procedure para CANCELAR UN TURNO
--- En una sola transaccion: cancela el turno y, si era un turno de ESTUDIO, libera los
--- estudios solicitados que estaban programados en el (vuelven a PENDIENTE sin turno).
--- Las transiciones de estado permitidas las controla el trigger TR_TURNOS_estado.
+/*
+    En una sola transaccion: cancela el turno y, si era un turno de ESTUDIO, libera los
+    estudios solicitados que estaban programados en el (vuelven a PENDIENTE sin turno).
+    Las transiciones de estado permitidas las controla el trigger TR_TURNOS_estado.
+*/
 CREATE PROCEDURE Proc_CancelarTurno
     @turno INT
 AS
@@ -239,21 +273,3 @@ BEGIN
     END CATCH
 END
 GO
-
-/* Ejemplos de uso:
-
-DECLARE @nuevo_turno INT;
-EXEC Proc_RegistrarTurno @paciente = 16, @profesional = 5, @consultorio = 9,
-     @fecha = '2026-12-01', @hora = '10:00', @tipo_turno = 'CONSULTA',
-     @turno_creado = @nuevo_turno OUTPUT;
-SELECT @nuevo_turno AS turno_creado;
-
-DECLARE @nueva_atencion INT;
-EXEC Proc_RegistrarAtencion @turno = 1, @motivo = 'Control', @diagnostico = 'Sin hallazgos',
-     @observaciones = NULL, @estudios = '1,3', @atencion_creada = @nueva_atencion OUTPUT;
-
-DECLARE @nueva_factura INT;
-EXEC Proc_FacturarAtencion @atencion = 13, @medio_pago = 'DEBITO', @factura_creada = @nueva_factura OUTPUT;
-
-EXEC Proc_CancelarTurno @turno = 3;
-*/
