@@ -82,11 +82,14 @@ BEGIN TRY
 
     WHILE @@FETCH_STATUS = 0
     BEGIN
+        -- Los montos se congelan como snapshot historico: se usa el precio
+        -- vigente al momento de facturar y no se recalcula si luego cambia.
         INSERT INTO FACTURACIONES (FACT_ATENCION, FACT_MONTO_TOTAL, FACT_MEDIO_PAGO, FACT_ESTADO_PAGO)
         VALUES (@am_codigo, @monto_total, @medio_pago, 'PENDIENTE');
 
         SET @fact_codigo = SCOPE_IDENTITY();
 
+        -- DF_MONTO_TOTAL conserva el precio historico del estudio facturado.
         INSERT INTO DETALLES_FACTURAS (DF_FACTURA, DF_ESTUDIO_SOLICITADO, DF_MONTO_TOTAL)
         SELECT @fact_codigo, ESO.ESO_CODIGO, E.EST_PRECIO_BASE
         FROM ESTUDIOS_SOLICITADOS ESO
