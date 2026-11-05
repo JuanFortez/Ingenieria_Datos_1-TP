@@ -11,11 +11,11 @@ CREATE PROCEDURE Proc_AgregarPaciente
     @direccion VARCHAR(100),
     @telefono VARCHAR(20),
     @mail VARCHAR(100),
-    @cobertura INT
+    @plan INT
 AS 
 BEGIN
-	INSERT INTO PACIENTES( PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_FECHA_NACIMIENTO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, COD_COBERTURA)
-	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion , @telefono, @mail,@cobertura );
+	INSERT INTO PACIENTES( PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_FECHA_NACIMIENTO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, COD_PLAN)
+	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion , @telefono, @mail, @plan );
 END 
 GO
 
@@ -29,11 +29,10 @@ CREATE PROCEDURE Proc_AgregarProfesional
     @telefono VARCHAR(20),
     @mail VARCHAR(100),
     @especialidad INT,
-    @cobertura INT
 AS 
 BEGIN
 	INSERT INTO PROFESIONALES( PRO_CUIT, PRO_NOMBRE, PRO_APELLIDO, PRO_FECHA_NACIMIENTO, PRO_DIRECCION, PRO_TELEFONO, PRO_EMAIL, PRO_ESPECIALIDAD)
-	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion ,@telefono,@mail,@especialidad );
+	VALUES( @cuit, @nombre ,@apellido, @fecha_nacimiento, @direccion, @telefono, @mail, @especialidad );
 END
 GO
 
@@ -42,9 +41,9 @@ CREATE PROCEDURE Proc_Buscar_DNI_Paciente
     @dni INT 
 AS 
 BEGIN 
-	SELECT PAC_CODIGO, PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, PAC_OBSERVACION, COD_COBERTURA
+	SELECT PAC_CODIGO, PAC_CUIT, PAC_NOMBRE, PAC_APELLIDO, PAC_DIRECCION, PAC_TELEFONO, PAC_EMAIL, PAC_OBSERVACION, COD_PLAN
 	FROM PACIENTES
-	WHERE SUBSTRING (PAC_CUIT, 3,8)= @dni;
+	WHERE SUBSTRING(PAC_CUIT, 3,8) = @dni;
 END
 GO
 
